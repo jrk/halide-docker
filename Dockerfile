@@ -2,7 +2,7 @@
 
 # Learn from LLVM builder model: https://github.com/llvm/llvm-project/blob/master/llvm/utils/docker/debian8/Dockerfile
 # Stage 1: make builder
-FROM ubuntu:16.04 AS halide-builder
+FROM ubuntu:16.04 AS llvm-builder
 
 RUN apt update && apt install -y --no-install-recommends \
            ca-certificates build-essential python wget git unzip \
@@ -18,6 +18,14 @@ RUN cd /tmp/llvm-build && ninja && ninja install
 # && cd / && rm -rf /tmp/llvm-build
 
 # Stage 2: Produce a minimal release image with build results
+FROM ubuntu:16.04
+#LABEL maintainer "LLVM Developers"
+## Install packages for minimal useful image.
+RUN apt update && apt install -y --no-install-recommends \
+           ca-certificates build-essential git zlib1g-dev
+#    rm -rf /var/lib/apt/lists/*
+## Copy build results of stage 1 to /usr/local.
+COPY --from=llvm-builder /tmp/llvm-inst/ /usr/local/
 
 # Halide builder:
 # cd /tmp && git clone https://github.com/halide/Halide.git && cd Halide
